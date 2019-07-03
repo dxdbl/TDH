@@ -32,8 +32,8 @@ do
     echo -e "\033[45;37m ##### THE FIRST COLUMN OF ${db_name}.${tbl_name} IS ${first_column} ##### \033[0m"
     echo "##### THE FIRST COLUMN OF ${db_name}.${tbl_name} IS ${first_column} #####" >>create_torc.log
     
-    # 通过数据字典取全部列名
-    column_num=`beeline -u "jdbc:hive2://${inceptor_server}:${inceptor_port}/default;principal=hive/node23@TDH" --maxwidth=999999 --showHeader=false -e "select count(column_name)  from system.columns_v where database_name = '${db_name}' and table_name = '${tbl_name}';" | grep \| |awk -F'|' '{print $2}' | sed 's/ //g'`
+    # 通过数据字典求列的COUNT值(即表有多少列)
+    column_num=`beeline -u "jdbc:hive2://${inceptor_server}:${inceptor_port}/default;principal=hive/node23@TDH" --maxwidth=999999 --showHeader=false -e "select count(column_name)  from system.columns_v where database_name = '${db_name}' and table_name = '${tbl_name}';" | grep \| |awk '{print $2}'`
     
     # 输出日志
     echo -e "\033[45;37m ##### THE COLUMN NUMBER OF ${db_name}.${tbl_name} IS ${column_num} ##### \033[0m"
@@ -46,7 +46,7 @@ do
     beeline -u "jdbc:hive2://${inceptor_server}:${inceptor_port}/default;principal=hive/node23@TDH" --maxwidth=999999 --showHeader=false -e "select column_name,column_type,commentstring from system.columns_v where database_name = '${db_name}' and table_name = '${tbl_name}';" | grep \| |awk '{if (FNR=='${column_num}') {print "`"$2"`",$4,"COMMENT","\""$6"\"",")"} else {print "`"$2"`",$4,"COMMENT","\""$6"\""","}}' >> torc_ddl.sql
 	
 	# 建表语句中添加表的 COMMENT 
-    echo -e "COMMENT ${table_comment}" >> torc_ddl.sql
+    echo -e "COMMENT \"${table_comment}\"" >> torc_ddl.sql
 	
     # 拼凑分桶字段
     echo -e "CLUSTERED BY (${first_column}) INTO 1 BUCKETS\nSTORED AS ORC\nTBLPROPERTIES('transactional'='true');" >> torc_ddl.sql
