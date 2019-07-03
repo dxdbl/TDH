@@ -57,3 +57,8 @@ do
     
 	# table.list 为读取的文件名
 done < table.list
+
+# table.list 示例如下 <test数据库下面有 test1,test2,test3 三张表>
+# test.test1
+# test.test2
+# test.test1
